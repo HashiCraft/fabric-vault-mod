@@ -41,6 +41,8 @@ dependencies {
 
 	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
 	// You may need to force-disable transitiveness on them.
+	implementation include('com.bettercloud:vault-java-driver:5.1.0')
+
 	modImplementation include("com.github.hashicraft:fabric-stateful-mod:${stateful_version}")
 }
 
