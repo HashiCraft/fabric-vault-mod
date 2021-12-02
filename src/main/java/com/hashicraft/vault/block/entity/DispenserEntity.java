@@ -31,12 +31,12 @@ public class DispenserEntity extends StatefulBlockEntity {
     super(Main.DISPENSER_ENTITY, pos, state, null);
   }
 
-  public String encrypt(String token, String input) {
+  public String encrypt(String input) {
     // TODO - implement.
     return null;
   }
 
-  public String sign(String token, String input) {
+  public String sign(String input) {
     // TODO - implement.
     return null;
   }
