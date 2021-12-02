@@ -63,8 +63,6 @@ public class Dispenser extends BlockWithEntity {
       ItemStack itemStack = new ItemStack(Main.CARD);
       Direction direction = dispenser.getCachedState().get(FACING);
 
-      // TODO: get the Vault token. (HINT: also see Main)
-
       // TODO: encrypt the player data. (HINT: also see DispenserEntity)
 
       // TODO: sign the data. (HINT: also see DispenserEntity)

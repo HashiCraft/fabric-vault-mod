@@ -33,4 +33,4 @@ bin/
 run/
 
 # vault
-vault
+/vault

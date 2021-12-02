@@ -13,51 +13,19 @@ Set up Vault to enable transit engine and approle authentication.
 ./setup.sh
 ```
 
-
-```shell
-cd C:/minecraft/fabric-vault-mod/vault
-```
-
 Start the Vault agent with the given config.
 ```shell
-./agent.bat
+./agent.sh
 ```
 
 
 
 
 
-
-## Step 1 - Get a Vault token.
-```java
-// Main.java
-public static String getToken() {
-  try {
-    // Read the token file from disk.
-    Path path = Paths.get(String.format("config/%s/token", MODID));
-
-    // Return all contents.
-    return Files.readAllLines(path).get(0);
-  } catch (IOException e) {
-    return null;
-  }
-}
-```
-
-```java
-// block/Dispenser.java
-String token = Main.getToken();
-```
-
-
-
-
-
-
-## Step 2 - Encrypt the data.
+## Step 1 - Encrypt the data.
 ```java
 // block/Dispenser.java @ onUse
-String data = dispenser.encrypt(token, player.getUuid().toString());
+String data = dispenser.encrypt(player.getUuid().toString());
 if (data == null) {
   return ActionResult.SUCCESS;
 }
@@ -78,8 +46,7 @@ try {
 
   // Create the HTTP request.
   HttpClient httpClient = HttpClientBuilder.create().build();
-  HttpPost request = new HttpPost("http://localhost:8200/v1/transit/encrypt/minecraft");
-  request.setHeader("X-Vault-Token", token);
+  HttpPost request = new HttpPost("http://localhost:8100/v1/transit/encrypt/minecraft");
   request.setEntity(entity);
 
   // Execute the HTTP request.
@@ -106,10 +73,10 @@ try {
 
 
 
-## Step 3 - Sign the data.
+## Step 2 - Sign the data.
 ```java
 // block/Dispenser.java @ onUse
-String signature = dispenser.sign(token, data);
+String signature = dispenser.sign(data);
 if (signature == null) {
   return ActionResult.SUCCESS;
 }
@@ -132,8 +99,7 @@ try {
 
   // Create the HTTP request.
   HttpClient httpClient = HttpClientBuilder.create().build();
-  HttpPost request = new HttpPost("http://localhost:8200/v1/transit/sign/minecraft");
-  request.setHeader("X-Vault-Token", token);
+  HttpPost request = new HttpPost("http://localhost:8100/v1/transit/sign/minecraft");
   request.setEntity(entity);
 
   // Execute the HTTP request.
@@ -160,7 +126,7 @@ try {
 
 
 
-## Step 4 - Write the data to the keycard.
+## Step 3 - Write the data to the keycard.
 ```java
 // block/Dispenser.java @ onUse
 NbtCompound identity = itemStack.getOrCreateNbt();
@@ -174,19 +140,7 @@ itemStack.setNbt(identity);
 
 
 
-
-## Step 5 - Get a vault token.
-```java
-// Main.java
-String token = Main.getToken();
-```
-
-
-
-
-
-
-## Step 6 - Get the identity from the keycard.
+## Step 4 - Get the identity from the keycard.
 ```java
 // Lock.java @ onUse
 // Read the identity from the card.
@@ -214,7 +168,7 @@ if (signature == null) {
 ## Step 5 - Verify the signature.
 ```java
 // Lock.java @ onUse
-boolean valid = lock.verify(token, data, signature);
+boolean valid = lock.verify(data, signature);
 ```
 
 ```java
@@ -235,8 +189,7 @@ try {
 
   // Create the HTTP request.
   HttpClient httpClient = HttpClientBuilder.create().build();
-  HttpPost request = new HttpPost("http://localhost:8200/v1/transit/verify/minecraft");
-  request.setHeader("X-Vault-Token", token);
+  HttpPost request = new HttpPost("http://localhost:8100/v1/transit/verify/minecraft");
   request.setEntity(entity);
 
   // Execute the HTTP request.
@@ -268,7 +221,7 @@ try {
 // Lock.java @ onUse
 if (valid) {
   // Decrypt the data.
-  String decrypted = lock.decrypt(token, data);
+  String decrypted = lock.decrypt(data);
   if (decrypted == null) {
     player.sendMessage(new LiteralText("ACCESS DENIED - Could not decrypt data"), true);
     return ActionResult.SUCCESS;
@@ -303,8 +256,7 @@ try {
 
   // Create the HTTP request.
   HttpClient httpClient = HttpClientBuilder.create().build();
-  HttpPost request = new HttpPost("http://localhost:8200/v1/transit/decrypt/minecraft");
-  request.setHeader("X-Vault-Token", token);
+  HttpPost request = new HttpPost("http://localhost:8100/v1/transit/decrypt/minecraft");
   request.setEntity(entity);
 
   // Execute the HTTP request.

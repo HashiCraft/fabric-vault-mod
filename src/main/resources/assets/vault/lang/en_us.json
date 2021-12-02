@@ -1,0 +1,6 @@
+{
+  "itemGroup.vault.general": "Vault",
+  "block.vault.dispenser": "Dispenser",
+  "block.vault.lock": "Lock",
+  "item.vault.card": "Keycard"
+}

@@ -63,12 +63,4 @@ public class Main implements ModInitializer {
   public static Identifier identifier(String path) {
     return new Identifier(MODID, path);
   }
-
-  //
-  // Get the Vault token to execute requests with.
-  //
-  public static String getToken() {
-    // TODO: implement.
-    return null;
-  }
 }
