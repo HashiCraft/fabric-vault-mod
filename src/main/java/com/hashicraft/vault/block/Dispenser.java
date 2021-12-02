@@ -63,11 +63,21 @@ public class Dispenser extends BlockWithEntity {
       ItemStack itemStack = new ItemStack(Main.CARD);
       Direction direction = dispenser.getCachedState().get(FACING);
 
-      // TODO: encrypt the player data. (HINT: also see DispenserEntity)
+      String data = dispenser.encrypt(player.getUuid().toString());
+      if (data == null) {
+        return ActionResult.SUCCESS;
+      }
 
-      // TODO: sign the data. (HINT: also see DispenserEntity)
+      String signature = dispenser.sign(data);
+      if (signature == null) {
+        return ActionResult.SUCCESS;
+      }
 
-      // TODO: write the data to the keycard.
+      NbtCompound identity = itemStack.getOrCreateNbt();
+      identity.putString("name", player.getName().asString());
+      identity.putString("data", data);
+      identity.putString("signature", signature);
+      itemStack.setNbt(identity);
 
       dispenser.dispense(world, itemStack, 1, direction);
     }

@@ -25,12 +25,77 @@ public class LockEntity extends StatefulBlockEntity {
   }
 
   public boolean verify(String input, String signature) {
-    // TODO: implement.
-    return false;
+    try {
+      // Construct the payload and encode the data for transport.
+      String payload = String.format("""
+          {
+            "hash_algorithm":"sha2-256",
+            "signature_algorithm":"pkcs1v15",
+            "input":"%s",
+            "signature": "%s"
+          }
+          """, Base64.getEncoder().encodeToString(input.getBytes()), signature);
+
+      // Convert it to JSON.
+      StringEntity entity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+
+      // Create the HTTP request.
+      HttpClient httpClient = HttpClientBuilder.create().build();
+      HttpPost request = new HttpPost("http://localhost:8100/v1/transit/verify/minecraft");
+      request.setEntity(entity);
+
+      // Execute the HTTP request.
+      HttpResponse response = httpClient.execute(request);
+      String body = EntityUtils.toString(response.getEntity());
+
+      // Check if everything went well.
+      if (response.getStatusLine().getStatusCode() != 200) {
+        System.out.println(body);
+        return false;
+      }
+
+      // Get the validity from the response.
+      JsonObject data = new JsonParser().parse(body).getAsJsonObject();
+      return data.get("data").getAsJsonObject().get("valid").getAsBoolean();
+    } catch (IOException e) {
+      System.out.println("ERROR: " + e.getMessage());
+      return false;
+    }
   }
 
   public String decrypt(String input) {
-    // TODO: implement.
-    return null;
+    try {
+      // Construct the payload.
+      String payload = String.format("""
+          {
+          "ciphertext": "%s"
+          }
+          """, input);
+    
+      // Convert it to JSON.
+      StringEntity entity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+    
+      // Create the HTTP request.
+      HttpClient httpClient = HttpClientBuilder.create().build();
+      HttpPost request = new HttpPost("http://localhost:8100/v1/transit/decrypt/minecraft");
+      request.setEntity(entity);
+    
+      // Execute the HTTP request.
+      HttpResponse response = httpClient.execute(request);
+      String body = EntityUtils.toString(response.getEntity());
+    
+      // Check if everything went well.
+      if (response.getStatusLine().getStatusCode() != 200) {
+        System.out.println(body);
+        return null;
+      }
+    
+      // Get the ciphertext from the response.
+      JsonObject data = new JsonParser().parse(body).getAsJsonObject();
+      return data.get("data").getAsJsonObject().get("plaintext").getAsString();
+    } catch (IOException e) {
+      System.out.println("ERROR: " + e.getMessage());
+      return null;
+    }
   }
 }

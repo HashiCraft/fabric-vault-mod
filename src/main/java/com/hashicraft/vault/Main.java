@@ -1,10 +1,5 @@
 package com.hashicraft.vault;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import com.hashicraft.vault.block.Dispenser;
 import com.hashicraft.vault.block.Lock;
 import com.hashicraft.vault.block.entity.DispenserEntity;

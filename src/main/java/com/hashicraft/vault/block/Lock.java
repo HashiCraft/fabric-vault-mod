@@ -99,16 +99,47 @@ public class Lock extends BlockWithEntity {
 
       // Only take action if someone is using a keycard.
       if (stack.isOf(Main.CARD)) {
-        // TODO: Get the identity from the keycard.
+        NbtCompound identity = stack.getNbt();
+        if (identity == null) {
+          player.sendMessage(new LiteralText("ACCESS DENIED - Keycard not valid"), true);
+          return ActionResult.SUCCESS;
+        }
 
-        // TODO: Verify the signature.
+        // Read the data from the identity.
+        String name = identity.getString("name");
+        String data = identity.getString("data");
+        String signature = identity.getString("signature");
+        if (signature == null) {
+          player.sendMessage(new LiteralText("ACCESS DENIED - Could not read signature"), true);
+          return ActionResult.SUCCESS;
+        }
 
-        // TODO: Decrypt the data.
+        boolean valid = lock.verify(data, signature);
+
+        if (valid) {
+        // Decrypt the data.
+        String decrypted = lock.decrypt(data);
+        if (decrypted == null) {
+          player.sendMessage(new LiteralText("ACCESS DENIED - Could not decrypt data"), true);
+          return ActionResult.SUCCESS;
+        }
+
+        // Decode the base64 encoded data.
+        String uuid = new String(Base64.getDecoder().decode(decrypted));
+
+        // Emit a redstone signal.
+        world.setBlockState(pos, state.with(POWERED, true), Block.NOTIFY_NEIGHBORS);
+        world.getBlockTickScheduler().schedule(pos, this, 40);
+
+        player.sendMessage(new LiteralText(String.format("Welcome %s (%s)", name, uuid)), true);
+      } else {
+        player.sendMessage(new LiteralText("ACCESS DENIED - Keycard not valid"), true);
+        return ActionResult.SUCCESS;
+      }
       } else {
         player.sendMessage(new LiteralText("ACCESS DENIED - Keycard required to enter"), true);
       }
     }
 
-    return ActionResult.SUCCESS;
-  }
-}
+  return ActionResult.SUCCESS;
+}}

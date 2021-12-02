@@ -9,7 +9,6 @@ import com.google.gson.JsonParser;
 import com.hashicraft.vault.Main;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -32,13 +31,77 @@ public class DispenserEntity extends StatefulBlockEntity {
   }
 
   public String encrypt(String input) {
-    // TODO - implement.
-    return null;
+    try {
+      // Construct the payload and encode the data for transport.
+      String payload = String.format("""
+          {
+          "plaintext": "%s"
+          }
+          """, Base64.getEncoder().encodeToString(input.getBytes()));
+
+      // Convert it to JSON.
+      StringEntity entity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+
+      // Create the HTTP request.
+      HttpClient httpClient = HttpClientBuilder.create().build();
+      HttpPost request = new HttpPost("http://localhost:8100/v1/transit/encrypt/minecraft");
+      request.setEntity(entity);
+
+      // Execute the HTTP request.
+      HttpResponse response = httpClient.execute(request);
+      String body = EntityUtils.toString(response.getEntity());
+
+      // Check if everything went well.
+      if (response.getStatusLine().getStatusCode() != 200) {
+        System.out.println(body);
+        return null;
+      }
+
+      // Get the ciphertext from the response.
+      JsonObject data = new JsonParser().parse(body).getAsJsonObject();
+      return data.get("data").getAsJsonObject().get("ciphertext").getAsString();
+    } catch (IOException e) {
+      System.out.println("ERROR: " + e.getMessage());
+      return null;
+    }
   }
 
   public String sign(String input) {
-    // TODO - implement.
-    return null;
+    try {
+      // Construct the payload.
+      String payload = String.format("""
+          {
+            "hash_algorithm":"sha2-256",
+            "signature_algorithm":"pkcs1v15",
+            "input":"%s"
+          }
+          """, Base64.getEncoder().encodeToString(input.getBytes()));
+
+      // Convert it to JSON.
+      StringEntity entity = new StringEntity(payload, ContentType.APPLICATION_JSON);
+
+      // Create the HTTP request.
+      HttpClient httpClient = HttpClientBuilder.create().build();
+      HttpPost request = new HttpPost("http://localhost:8100/v1/transit/sign/minecraft");
+      request.setEntity(entity);
+
+      // Execute the HTTP request.
+      HttpResponse response = httpClient.execute(request);
+      String body = EntityUtils.toString(response.getEntity());
+
+      // Check if everything went well.
+      if (response.getStatusLine().getStatusCode() != 200) {
+        System.out.println(body);
+        return null;
+      }
+
+      // Get the signature from the response.
+      JsonObject data = new JsonParser().parse(body).getAsJsonObject();
+      return data.get("data").getAsJsonObject().get("signature").getAsString();
+    } catch (IOException e) {
+      System.out.println("ERROR: " + e.getMessage());
+      return null;
+    }
   }
 
   public void dispense(World world, ItemStack stack, int offset, Direction side) {
